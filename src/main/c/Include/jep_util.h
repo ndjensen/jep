@@ -157,6 +157,8 @@ extern jclass JDOUBLE_ARRAY_TYPE;
     F(OUTOFMEMORY_EXC_TYPE, "java/lang/OutOfMemoryError") \
     F(ASSERTION_EXC_TYPE, "java/lang/AssertionError") \
     F(JEP_EXC_TYPE, "jep/JepException") \
+    F(JPYOBJECT_TYPE, "jep/python/JPyObject") \
+    F(JPYCALLABLE_TYPE, "jep/python/JPyCallable") \
     NUMPY_CLASS_TABLE(F)
 
 #if JEP_NUMPY_ENABLED

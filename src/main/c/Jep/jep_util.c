@@ -737,6 +737,9 @@ PyObject* convert_jobject(JNIEnv *env, jobject val, int typeid)
         } else if (jndarray_check(env, val)) {
             return convert_jndarray_pyndarray(env, val);
 #endif
+        } else if ((*env)->IsInstanceOf(env, val, JPYOBJECT_TYPE)) {
+            jlong l = jep_python_JPyObject_getPyObject(env, val);
+            return (PyObject*) l;
         }
 
         // none of the above checks matched, make a new PyJObject
@@ -806,7 +809,6 @@ PyObject* convert_jobject(JNIEnv *env, jobject val, int typeid)
 
         return PyFloat_FromDouble(b);
     }
-
 
     case JCHAR_ID: {
         jchar c = java_lang_Character_charValue(env, val);
