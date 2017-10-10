@@ -33,7 +33,7 @@ public class TestNumpy {
         NDArray<boolean[]> zarray = new NDArray<>(
                 new boolean[] { true, false, true, true }, dimensions);
         jep.set("zarray", zarray);
-        String z_dtype = (String) jep.getValue("zarray.dtype");
+        String z_dtype = jep.getValue("zarray.dtype").toString();
         if (!"bool".equals(z_dtype)) {
             throw new AssertionError(
                     "boolean ndarray set failed, dtype = " + z_dtype);
@@ -51,7 +51,7 @@ public class TestNumpy {
         NDArray<byte[]> barray = new NDArray<>(
                 new byte[] { 0x10, 0x00, 0x54, 032 }, dimensions);
         jep.set("barray", barray);
-        String b_dtype = (String) jep.getValue("barray.dtype");
+        String b_dtype = jep.getValue("barray.dtype").toString();
         if (!"int8".equals(b_dtype)) {
             throw new AssertionError(
                     "byte ndarray set failed, dtype = " + b_dtype);
@@ -69,7 +69,7 @@ public class TestNumpy {
         NDArray<short[]> sarray = new NDArray<>(new short[] { 5, 3, 1, 8 },
                 dimensions);
         jep.set("sarray", sarray);
-        String s_dtype = (String) jep.getValue("sarray.dtype");
+        String s_dtype = jep.getValue("sarray.dtype").toString();
         if (!"int16".equals(s_dtype)) {
             throw new AssertionError(
                     "short ndarray set failed, dtype = " + s_dtype);
@@ -87,7 +87,7 @@ public class TestNumpy {
         NDArray<int[]> iarray = new NDArray<>(new int[] { 547, 232, -675, 101 },
                 dimensions);
         jep.set("iarray", iarray);
-        String i_dtype = (String) jep.getValue("iarray.dtype");
+        String i_dtype = jep.getValue("iarray.dtype").toString();
         if (!"int32".equals(i_dtype)) {
             throw new AssertionError(
                     "int ndarray set failed, dtype = " + i_dtype);
@@ -106,7 +106,7 @@ public class TestNumpy {
                 new long[] { 62724764L, 3424637L, 3426734242L, -3429234L },
                 dimensions);
         jep.set("larray", larray);
-        String l_dtype = (String) jep.getValue("larray.dtype");
+        String l_dtype = jep.getValue("larray.dtype").toString();
         if (!"int64".equals(l_dtype)) {
             throw new AssertionError(
                     "long ndarray set failed, dtype = " + l_dtype);
@@ -124,7 +124,7 @@ public class TestNumpy {
         NDArray<float[]> farray = new NDArray<>(
                 new float[] { 4.32f, -0.0001f, 349.285f, 3201.0f }, dimensions);
         jep.set("farray", farray);
-        String f_dtype = (String) jep.getValue("farray.dtype");
+        String f_dtype = jep.getValue("farray.dtype").toString();
         if (!"float32".equals(f_dtype)) {
             throw new AssertionError(
                     "float ndarray set failed, dtype = " + f_dtype);
@@ -143,7 +143,7 @@ public class TestNumpy {
                 new double[] { 0.44321, 0.00015, -9.34278, 235574.53 },
                 dimensions);
         jep.set("darray", darray);
-        String d_dtype = (String) jep.getValue("darray.dtype");
+        String d_dtype = jep.getValue("darray.dtype").toString();
         if (!"float64".equals(d_dtype)) {
             throw new AssertionError(
                     "double ndarray set failed, dtype = " + d_dtype);

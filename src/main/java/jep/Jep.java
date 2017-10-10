@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import jep.python.MemoryManager;
 import jep.python.PyModule;
 import jep.python.PyObject;
 
@@ -70,6 +71,8 @@ public final class Jep implements AutoCloseable {
     private StringBuilder evalLines = null;
 
     private boolean interactive = false;
+
+    private MemoryManager memoryManager = new MemoryManager();
 
     // windows requires this as unix newline...
     private static final String LINE_SEP = "\n";
@@ -306,12 +309,15 @@ public final class Jep implements AutoCloseable {
      *                if an error occurs
      */
     public void isValidThread() throws JepException {
-        if (this.thread != Thread.currentThread())
+        if (this.thread != Thread.currentThread()) {
             throw new JepException("Invalid thread access.");
-        if (this.closed)
+        }
+        if (this.closed) {
             throw new JepException("Jep instance has been closed.");
-        if (this.tstate == 0)
+        }
+        if (this.tstate == 0) {
             throw new JepException("Initialization failed.");
+        }
     }
 
     /**
@@ -1093,6 +1099,8 @@ public final class Jep implements AutoCloseable {
             throw new RuntimeException(e);
         }
 
+        getMemoryManager().cleanupReferences();
+
         this.close(tstate);
         this.tstate = 0;
 
@@ -1100,5 +1108,16 @@ public final class Jep implements AutoCloseable {
     }
 
     private native void close(long tstate);
+
+    /**
+     * Gets the memory manager associated with this Jep instance. The memory
+     * manager attempts to track native memory usage of JPyObjects. This should
+     * not be called outside of Jep and should be considered an internal method.
+     * 
+     * @return the memory manager
+     */
+    public MemoryManager getMemoryManager() {
+        return memoryManager;
+    }
 
 }

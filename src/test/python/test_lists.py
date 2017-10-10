@@ -1,7 +1,6 @@
 import unittest
 
 import jep
-Test = jep.findClass('jep.test.Test')
 from java.util import ArrayList
 
 COUNT = 17
@@ -22,9 +21,6 @@ def makePythonList():
 
 
 class TestLists(unittest.TestCase):
-
-    def setUp(self):
-        self.test = Test()
 
     def test_sequence(self):
         jlist = makeJavaList()

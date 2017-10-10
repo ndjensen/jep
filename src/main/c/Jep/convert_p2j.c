@@ -701,6 +701,53 @@ jobject PyCallable_as_functional_interface(JNIEnv *env, PyObject *callable,
     return proxy;
 };
 
+
+static jobject PyObject_As_JPyObject(JNIEnv *env, PyObject *pyobject)
+{
+    jobject jpyobject;
+
+    JepThread *jepThread = pyembed_get_jepthread();
+    if (!jepThread) {
+        if (!PyErr_Occurred()) {
+            PyErr_SetString(PyExc_RuntimeError, "Invalid JepThread pointer.");
+        }
+        return NULL;
+    }
+
+    jpyobject = jep_python_JPyObject_new_J_J_Jep(env, (jlong) jepThread, (jlong) pyobject, jepThread->caller);
+    if(process_java_exception(env) || !jpyobject) {
+        return NULL;
+    }
+    // incref to ensure python does not garbage collect it out from under us
+    Py_INCREF(pyobject);
+
+    return jpyobject;
+}
+
+
+static jobject PyCallable_As_JPyCallable(JNIEnv *env, PyObject *pyobject)
+{
+    jobject jpycallable;
+
+    JepThread *jepThread = pyembed_get_jepthread();
+    if (!jepThread) {
+        if (!PyErr_Occurred()) {
+            PyErr_SetString(PyExc_RuntimeError, "Invalid JepThread pointer.");
+        }
+        return NULL;
+    }
+
+    jpycallable = jep_python_JPyCallable_new_J_J_Jep(env, (jlong) jepThread, (jlong) pyobject, jepThread->caller);
+    if(process_java_exception(env) || !jpycallable) {
+        return NULL;
+    }
+    // incref to ensure python does not garbage collect it out from under us
+    Py_INCREF(pyobject);
+
+    return jpycallable;
+}
+
+
 jobject PyObject_As_jobject(JNIEnv *env, PyObject *pyobject,
                             jclass expectedType)
 {
@@ -746,11 +793,15 @@ jobject PyObject_As_jobject(JNIEnv *env, PyObject *pyobject,
             return PyCallable_as_functional_interface(env, pyobject, expectedType);
         } else if (PyErr_Occurred()) {
             return NULL;
+        } else if ((*env)->IsAssignableFrom(env, JPYCALLABLE_TYPE, expectedType)) {
+            return PyCallable_As_JPyCallable(env, pyobject);
         }
 #if JEP_NUMPY_ENABLED
     } else if (npy_array_check(pyobject)) {
         return convert_pyndarray_jobject(env, pyobject, expectedType);
 #endif
+    } else if ((*env)->IsAssignableFrom(env, JPYOBJECT_TYPE, expectedType)) {
+        return (jobject) PyObject_As_JPyObject(env, pyobject);
     } else if ((*env)->IsAssignableFrom(env, JSTRING_TYPE, expectedType)) {
         return (jobject) PyObject_As_jstring(env, pyobject);
     }

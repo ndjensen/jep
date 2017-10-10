@@ -113,7 +113,7 @@ public class JepException extends Exception {
      * Get the address of the python exception type that triggered this
      * exceptions. This is for internal use only.
      *
-     * @return the address of tthe triggering python exception type
+     * @return the address of the triggering python exception type
      */
     protected long getPythonType() {
         return pythonType;
