@@ -714,7 +714,7 @@ static jobject PyObject_As_JPyObject(JNIEnv *env, PyObject *pyobject)
         return NULL;
     }
 
-    jpyobject = jep_python_JPyObject_new_J_J_Jep(env, (jlong) jepThread, (jlong) pyobject, jepThread->caller);
+    jpyobject = jep_python_PyObject_new_J_J_Jep(env, (jlong) jepThread, (jlong) pyobject, jepThread->caller);
     if(process_java_exception(env) || !jpyobject) {
         return NULL;
     }
@@ -737,7 +737,7 @@ static jobject PyCallable_As_JPyCallable(JNIEnv *env, PyObject *pyobject)
         return NULL;
     }
 
-    jpycallable = jep_python_JPyCallable_new_J_J_Jep(env, (jlong) jepThread, (jlong) pyobject, jepThread->caller);
+    jpycallable = jep_python_PyCallable_new_J_J_Jep(env, (jlong) jepThread, (jlong) pyobject, jepThread->caller);
     if(process_java_exception(env) || !jpycallable) {
         return NULL;
     }

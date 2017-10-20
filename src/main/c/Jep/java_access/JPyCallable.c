@@ -30,7 +30,7 @@
 static jmethodID init_J_J_Jep = 0;
 
 
-jobject jep_python_JPyCallable_new_J_J_Jep(JNIEnv* env, jlong tstate, jlong pyObject, jobject jep)
+jobject jep_python_PyCallable_new_J_J_Jep(JNIEnv* env, jlong tstate, jlong pyObject, jobject jep)
 {
     jobject result = NULL;
     Py_BEGIN_ALLOW_THREADS

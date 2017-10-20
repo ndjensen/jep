@@ -3,8 +3,8 @@ package jep.test;
 import java.util.Map;
 
 import jep.JepException;
-import jep.python.JPyCallable;
-import jep.python.JPyObject;
+import jep.python.PyCallable;
+import jep.python.PyObject;
 
 /**
  * Tests native Python objects being used in Java. Used by test_jpyobject.py.
@@ -20,26 +20,26 @@ public class TestJPyObjects {
         return obj;
     }
 
-    public JPyObject testType(JPyObject obj) {
+    public PyObject testType(PyObject obj) {
         return obj;
     }
 
-    public String testInvoke(JPyObject obj) throws JepException {
-        JPyCallable callable = (JPyCallable) obj.getAttr("helloWorld");
+    public String testInvoke(PyObject obj) throws JepException {
+        PyCallable callable = (PyCallable) obj.getAttr("helloWorld");
         return (String) callable.call();
     }
 
-    public String testInvokeKwargs(JPyObject obj, Map<String, Object> kwargs)
+    public String testInvokeKwargs(PyObject obj, Map<String, Object> kwargs)
             throws JepException {
-        JPyCallable callable = (JPyCallable) obj.getAttr("helloWorld");
+        PyCallable callable = (PyCallable) obj.getAttr("helloWorld");
         return (String) callable.call(kwargs);
     }
 
-    public String testBoundInvoke(JPyCallable obj) throws JepException {
+    public String testBoundInvoke(PyCallable obj) throws JepException {
         return (String) obj.call();
     }
 
-    public String testUnboundInvoke(JPyObject instance, JPyCallable obj)
+    public String testUnboundInvoke(PyObject instance, PyCallable obj)
             throws JepException {
         return (String) obj.call(instance);
     }

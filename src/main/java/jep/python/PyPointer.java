@@ -31,13 +31,13 @@ import jep.JepException;
 
 /**
  * Contains pointers to a JepThread* and a PyObject* for using a PyObject* in
- * Java as a JPyObject or its subclasses.
+ * Java as a PyObject or its subclasses.
  * 
  *
  * @author njensen
  * @since 3.8
  */
-public class PyPointer extends WeakReference<JPyObject> {
+public class PyPointer extends WeakReference<PyObject> {
 
     protected final long tstate;
 
@@ -51,7 +51,7 @@ public class PyPointer extends WeakReference<JPyObject> {
      * Constructor
      * 
      * @param referrent
-     *            the JPyObject (or subclass) corresponding to this PyPointer
+     *            the PyObject (or subclass) corresponding to this PyPointer
      * @param parent
      *            the Jep instance that created this PyPointer
      * @param tstate
@@ -60,7 +60,7 @@ public class PyPointer extends WeakReference<JPyObject> {
      *            the pointer to the PyObject*
      * @throws JepException
      */
-    protected PyPointer(JPyObject referrent, Jep parent,
+    protected PyPointer(PyObject referrent, Jep parent,
             long tstate, long pyObject) throws JepException {
         super(referrent, parent.getMemoryManager().getReferenceQueue());
         this.tstate = tstate;

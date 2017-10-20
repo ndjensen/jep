@@ -739,7 +739,7 @@ PyObject* convert_jobject(JNIEnv *env, jobject val, int typeid)
 #endif
         } else if ((*env)->IsInstanceOf(env, val, JPYOBJECT_TYPE)) {
             PyObject *ret;
-            jlong l = jep_python_JPyObject_getPyObject(env, val);
+            jlong l = jep_python_PyObject_getPyObject(env, val);
             ret = (PyObject*) l;
             Py_INCREF(ret);
             return ret;

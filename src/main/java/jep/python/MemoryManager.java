@@ -41,12 +41,12 @@ import jep.JepException;
  */
 public final class MemoryManager {
 
-    private ReferenceQueue<JPyObject> refQueue = new ReferenceQueue<>();
+    private ReferenceQueue<PyObject> refQueue = new ReferenceQueue<>();
 
     private Set<PyPointer> pointers = Collections
             .newSetFromMap(new IdentityHashMap<PyPointer, Boolean>());
 
-    protected ReferenceQueue<JPyObject> getReferenceQueue()
+    protected ReferenceQueue<PyObject> getReferenceQueue()
             throws JepException {
         cleanupWeakReferences();
         return refQueue;
@@ -82,7 +82,7 @@ public final class MemoryManager {
     /**
      * Cleans out weak references to PyPointers associated with this Jep
      * instance. Attempts to free memory earlier than a Jep.close() if the
-     * developer did not explicitly free the memory with JPyObject.close().
+     * developer did not explicitly free the memory with PyObject.close().
      * 
      * @throws JepException
      */

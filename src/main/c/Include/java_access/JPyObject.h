@@ -25,10 +25,10 @@
    distribution.
 */
 
-#ifndef _Included_jep_python_JPyObject
-#define _Included_jep_python_JPyObject
+#ifndef _Included_jep_python_PyObject
+#define _Included_jep_python_PyObject
 
-jobject jep_python_JPyObject_new_J_J_Jep(JNIEnv*, jlong, jlong, jobject);
-jlong jep_python_JPyObject_getPyObject(JNIEnv*, jobject);
+jobject jep_python_PyObject_new_J_J_Jep(JNIEnv*, jlong, jlong, jobject);
+jlong jep_python_PyObject_getPyObject(JNIEnv*, jobject);
 
-#endif // ndef jep_python_JPyObject
+#endif // ndef jep_python_PyObject

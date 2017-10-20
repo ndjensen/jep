@@ -29,11 +29,11 @@
 
 
 /*
- * Class:     jep_python_JPyObject
+ * Class:     jep_python_PyObject
  * Method:    getAttr
  * Signature: (JJLjava/lang/String;)Ljava/lang/Object;
  */
-JNIEXPORT jobject JNICALL Java_jep_python_JPyObject_getAttr
+JNIEXPORT jobject JNICALL Java_jep_python_PyObject_getAttr
   (JNIEnv *env, jobject obj, jlong tstate, jlong pyobj, jstring str)
 {
     JepThread  *jepThread;

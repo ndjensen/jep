@@ -36,11 +36,11 @@
 // NULL.
 
 /*
- * Class:     jep_InvocationHandler
+ * Class:     jep_python_InvocationHandler
  * Method:    invoke
  * Signature: (Ljava/lang/String;JJ[Ljava/lang/Object;[Ljava/lang/Class;Ljava/lang/Class;)Ljava/lang/Object;
  */
-JNIEXPORT jobject JNICALL Java_jep_InvocationHandler_invoke
+JNIEXPORT jobject JNICALL Java_jep_python_InvocationHandler_invoke
 (JNIEnv *env,
  jclass clazz,
  jstring jname,

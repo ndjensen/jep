@@ -24,27 +24,43 @@
  */
 package jep.python;
 
+import java.util.Map;
+
 import jep.Jep;
 import jep.JepException;
 
 /**
- * PyClass.java - encapsulates a pointer to a class object
+ * 
+ * A Java object that wraps a pointer to a Python callable.
+ * 
  *
- * @author Mike Johnson
+ * @author njensen
+ * @since 3.8
  */
-public class PyClass extends PyObject {
+public class PyCallable extends PyObject {
 
-    /**
-     * Make a new PyClass
-     * 
-     * @param tstate
-     *            a <code>long</code> value
-     * @param obj the address of the python class
-     * @param jep the jep instance which created this
-     * @exception JepException
-     *                if an error occurs
-     */
-    public PyClass(long tstate, long obj, Jep jep) throws JepException {
-        super(tstate, obj, jep);
+    public PyCallable(long tstate, long pyObject, Jep jep)
+            throws JepException {
+        super(tstate, pyObject, jep);
     }
+
+    public Object call(Object... args) throws JepException {
+        checkValid();
+        return call(pointer.tstate, pointer.pyObject, args, null);
+    }
+
+    public Object call(Map<String, Object> kwargs) throws JepException {
+        checkValid();
+        return call(pointer.tstate, pointer.pyObject, null, kwargs);
+    }
+
+    public Object call(Object[] args, Map<String, Object> kwargs)
+            throws JepException {
+        checkValid();
+        return call(pointer.tstate, pointer.pyObject, args, kwargs);
+    }
+
+    private native Object call(long tstate, long pyObject, Object[] args,
+            Map<String, Object> kwargs) throws JepException;
+
 }

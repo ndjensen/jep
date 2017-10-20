@@ -22,12 +22,14 @@
  *     3. This notice may not be removed or altered from any source
  *     distribution.
  */
-package jep;
+package jep.python;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import jep.python.PyObject;
+import jep.Jep;
+import jep.JepException;
+import jep.Util;
 
 /**
  * Handle Proxy method calls.
@@ -36,11 +38,8 @@ import jep.python.PyObject;
  */
 public class InvocationHandler implements java.lang.reflect.InvocationHandler {
 
-    private long tstate;
+    private PyObject pyObject;
 
-    private long target;
-
-    private Jep jep;
     private final boolean functionalInterface;
 
     /**
@@ -59,20 +58,8 @@ public class InvocationHandler implements java.lang.reflect.InvocationHandler {
      */
     public InvocationHandler(long tstate, long ltarget, Jep jep, final boolean functionalInterface)
             throws JepException {
-        this.tstate = tstate;
-        this.target = ltarget;
-        this.jep = jep;
         this.functionalInterface = functionalInterface;
-
-        // track target with jep.
-
-        // this ensures that our target doesn't get garbage collected,
-        // and since we can't have a close(), it'll get cleaned up.
-
-        // correction. object is now increfed before being returned to
-        // Java since in some cases the garbage collection could run
-        // before this.
-        jep.trackObject(new PyObject(this.tstate, this.target, this.jep), false);
+        pyObject = new PyObject(tstate, ltarget, jep);
     }
 
     /**
@@ -122,7 +109,7 @@ public class InvocationHandler implements java.lang.reflect.InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args)
             throws Throwable {
-        this.jep.isValidThread();
+        pyObject.jep.isValidThread();
 
         /*
          * If this is a functional interface but a non-abstract (default) interface method is called
@@ -141,7 +128,8 @@ public class InvocationHandler implements java.lang.reflect.InvocationHandler {
             types[i] = Util.getTypeId(args[i]);
 
         // TODO this does not handle default methods.
-        return invoke(method.getName(), this.tstate, this.target, args, types,
+        return invoke(method.getName(), pyObject.pointer.tstate,
+                pyObject.pointer.pyObject, args, types,
                 Util.getTypeId(method.getReturnType()), functionalInterface);
     }
 

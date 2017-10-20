@@ -29,11 +29,11 @@
 
 
 /*
- * Class:     jep_python_JPyCallable
+ * Class:     jep_python_PyCallable
  * Method:    call
  * Signature: (JJ[Ljava/lang/Object;Ljava/util/Map;)Ljava/lang/Object;
  */
-JNIEXPORT jobject JNICALL Java_jep_python_JPyCallable_call
+JNIEXPORT jobject JNICALL Java_jep_python_PyCallable_call
   (JNIEnv *env, jobject this, jlong tstate, jlong pyobj, jobjectArray args, jobject kwargs)
 {
 

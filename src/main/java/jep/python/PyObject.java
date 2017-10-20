@@ -28,415 +28,104 @@ import jep.Jep;
 import jep.JepException;
 
 /**
- * PyObject.java - encapsulates a pointer to a PyObject
+ * A Java object that wraps a pointer to a Python object.
+ * 
+ * close() can be called to immediately decref the associated PyObject* and
+ * potentially enable the Python garbage collector to collect it, freeing native
+ * memory. If close() is not called, the native memory may still be freed by the
+ * Jep instance's associated MemoryManager if Java garbage collects the object.
+ * Last but not least, closing the Jep instance that created this PyObject will
+ * also free the native memory.
+ * 
  *
- * @author Mike Johnson
+ * @author njensen
+ * @since 3.8
  */
-public class PyObject {
-    /**
-     * the jep that created this object
-     *
-     */
-    protected Jep  jep = null;
+public class PyObject implements AutoCloseable {
+
+    protected final PyPointer pointer;
+
+    protected final Jep jep;
 
     /**
-     * the pointer to the PyObject
-     *
-     */
-    protected long obj = 0;
-
-    /**
-     * thread state pointer in python
-     *
-     */
-    protected long tstate = 0;
-
-
-    /**
-     * Make a new PyObject
+     * Constructor called from native code
      * 
-     * @param tstate a <code>long</code> value
-     * @param obj the address of the python object
-     * @param jep the instance of jep that created this object
-     * @exception JepException if an error occurs
+     * @param tstate
+     *            the thread pointer
+     * @param pyObject
+     *            the PyObject* pointer
+     * @param jep
+     *            the Jep instance creating this PyObject
+     * @throws JepException
      */
-    public PyObject(long tstate, long obj, Jep jep) throws JepException {
-        this.tstate = tstate;
-        this.obj    = obj;
-        this.jep    = jep;
-
-        if(obj == 0)
-            throw new JepException("Unable to create object, NULL.");
+    protected PyObject(long tstate, long pyObject, Jep jep)
+            throws JepException {
+        if (pyObject == 0) {
+            throw new JepException("Invalid pointer.");
+        }
+        this.jep = jep;
+        this.pointer = new PyPointer(this, jep, tstate, pyObject);
     }
-
 
     /**
      * Check if PyObject is valid
      * 
-     * @throws JepException if an error occurs
+     * @throws JepException
+     *             if an error occurs
      */
-    public void isValid() throws JepException {
-        if(obj == 0)
-            throw new JepException("Object: Invalid pointer.");
+    protected void checkValid() throws JepException {
         jep.isValidThread();
     }
 
-
-    /**
-     * internal use only
-     *
-     * @exception JepException if an error occurs
-     */
-    public void decref() throws JepException {
-        isValid();
-        this.decref(this.tstate, this.obj);
+    public Object getAttr(String name) throws JepException {
+        checkValid();
+        return getAttr(pointer.tstate, pointer.pyObject, name);
     }
 
-
-    private native void decref(long tstate, long ptr) throws JepException;
-
-
-    /**
-     * internal use only
-     *
-     * @exception JepException if an error occurs
-     */
-    public void incref() throws JepException {
-        isValid();
-        this.incref(this.tstate, this.obj);
-    }
-
-
-    private native void incref(long tstate, long ptr) throws JepException;
-
+    private native Object getAttr(long tstate, long pyObject, String name)
+            throws JepException;
 
     /**
-     * I will be closed automagically.
+     * Called from native code
      * 
+     * @return
      */
-    public void close() {
+    protected long getPyObject() {
+        return pointer.pyObject;
+    }
+
+    @Override
+    public String toString() {
         try {
-            if(this.obj == 0)
-                return;
-
-            this.decref();
+            Object strMethod = getAttr("__str__");
+            if (strMethod != null) {
+                if (strMethod instanceof PyCallable) {
+                    Object str = ((PyCallable) strMethod).call();
+                    if (str != null) {
+                        return str.toString();
+                    } else {
+                        throw new IllegalStateException("__str__() on "
+                                + super.toString() + " returned null");
+                    }
+                } else {
+                    throw new IllegalStateException("__str__ on "
+                            + super.toString() + " is not callable");
+                }
+            } else {
+                throw new IllegalStateException(
+                        "No __str__ attribute found on " + super.toString());
+            }
+        } catch (JepException e) {
+            throw new IllegalStateException(
+                    "Error determining Python string on " + super.toString(),
+                    e);
         }
-        catch(JepException e) {
-            // shouldn't happen?
-        }
-
-        this.obj = 0;
     }
 
-
-    // ------------------------------ set things
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v an <code>Object</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, Object v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
+    @Override
+    public void close() throws JepException {
+        checkValid();
+        this.pointer.dispose();
     }
 
-    private native void set(long tstate, long module, String name, Object v)
-        throws JepException;
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>String</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, String v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-
-    private native void set(long tstate, long module, String name, String v)
-        throws JepException;
-
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>boolean</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, boolean v) throws JepException {
-        // there's essentially no difference between int and bool...
-        if(v)
-            set(name, 1);
-        else
-            set(name, 0);
-    }
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v an <code>int</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, int v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-    
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v an <code>int</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, short v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-    
-    private native void set(long tstate, long module, String name, int v)
-        throws JepException;
-
-    
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>char[]</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, char[] v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, new String(v));
-    }
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>char</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, char v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, new String(new char[] { v }));
-    }
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param b a <code>byte</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, byte b) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, b);
-    }
-
-    
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>long</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, long v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-    
-    private native void set(long tstate, long module, String name, long v)
-        throws JepException;
-    
-    
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>double</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, double v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-    
-    private native void set(long tstate, long module, String name, double v)
-        throws JepException;
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>float</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, float v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-    
-    private native void set(long tstate, long module, String name, float v)
-        throws JepException;
-
-
-    // -------------------------------------------------- set arrays
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>boolean[]</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, boolean[] v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-
-    private native void set(long tstate, long module, String name, boolean[] v)
-        throws JepException;
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v an <code>int[]</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, int[] v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-
-    private native void set(long tstate, long module, String name, int[] v)
-        throws JepException;
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>short[]</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, short[] v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-
-    private native void set(long tstate, long module, String name, short[] v)
-        throws JepException;
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>byte[]</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, byte[] v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-
-    private native void set(long tstate, long module, String name, byte[] v)
-        throws JepException;
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>long[]</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, long[] v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-
-    private native void set(long tstate, long module, String name, long[] v)
-        throws JepException;
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>double[]</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, double[] v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-
-    private native void set(long tstate, long module, String name, double[] v)
-        throws JepException;
-
-
-    /**
-     * Describe <code>set</code> method here.
-     *
-     * @param name a <code>String</code> value
-     * @param v a <code>float[]</code> value
-     * @exception JepException if an error occurs
-     */
-    public void set(String name, float[] v) throws JepException {
-        isValid();
-        set(this.tstate, this.obj, name, v);
-    }
-
-    private native void set(long tstate, long module, String name, float[] v)
-        throws JepException;
-
-
-    /**
-     * Create a module.
-     *
-     * <b>Internal use only.</b>
-     *
-     * @param tstate a <code>long</code> value
-     * @param onModule a <code>long</code> value
-     * @param name a <code>String</code> value
-     * @return a <code>long</code> value
-     * @exception JepException if an error occurs
-     */
-    protected native long createModule(long tstate,
-                                       long onModule,
-                                       String name) throws JepException;
-
-
-    /**
-     * Get a string value from a module.
-     *
-     * <b>Internal use only.</b>
-     *
-     * @param tstate a <code>long</code> value
-     * @param onModule a <code>long</code> value
-     * @param str a <code>String</code> value
-     * @return an <code>Object</code> value
-     * @exception JepException if an error occurs
-     */
-    protected native Object getValue(long tstate,
-                                     long onModule,
-                                     String str) throws JepException;
 }

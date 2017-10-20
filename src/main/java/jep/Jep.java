@@ -25,13 +25,9 @@
 package jep;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import jep.python.MemoryManager;
-import jep.python.PyModule;
-import jep.python.PyObject;
 
 /**
  * <p>
@@ -77,12 +73,6 @@ public final class Jep implements AutoCloseable {
     // windows requires this as unix newline...
     private static final String LINE_SEP = "\n";
 
-    /*
-     * keep track of objects that we create. do this to prevent crashes in
-     * userland if jep is closed.
-     */
-    private final List<PyObject> pythonObjects = new ArrayList<>();
-
     /**
      * Tracks if this thread has been used for an interpreter before. Using
      * different interpreter instances on the same thread is iffy at best. If
@@ -96,44 +86,6 @@ public final class Jep implements AutoCloseable {
         }
     };
 
-    /**
-     * Sets interpreter settings for the top Python interpreter. This method
-     * must be called before the first Jep instance is created in the process.
-     * 
-     * @param config
-     *            the python configuration to use.
-     * 
-     * @throws JepException
-     *             if an error occurs
-     * @deprecated Please use {@link #MainInterpreter.setInitParams(PyConfig)}
-     *             instead.
-     * @since 3.6
-     */
-    @Deprecated
-    public static void setInitParams(PyConfig config) throws JepException {
-        MainInterpreter.setInitParams(config);
-    }
-
-    /**
-     * Sets the sys.argv values on the top interpreter. This is a workaround for
-     * issues with shared modules and should be considered experimental.
-     * 
-     * @param argv
-     *            the arguments to be set on Python's sys.argv for the top/main
-     *            interpreter
-     * @throws JepException
-     *             if an error occurs
-     * @deprecated Please use
-     *             {@link #MainInterpreter.setSharedModulesArgv(String...)}
-     *             instead.
-     * 
-     * @since 3.7
-     */
-    @Deprecated
-    public static void setSharedModulesArgv(String... argv)
-            throws JepException {
-        MainInterpreter.setSharedModulesArgv(argv);
-    }
 
     // -------------------------------------------------- constructors
 
@@ -146,90 +98,6 @@ public final class Jep implements AutoCloseable {
      */
     public Jep() throws JepException {
         this(new JepConfig());
-    }
-
-    /**
-     * Creates a new <code>Jep</code> instance and its associated
-     * sub-interpreter.
-     * 
-     * @param interactive
-     *            whether {@link #eval(String)} should support the slower
-     *            behavior of potentially waiting for multiple statements
-     * @exception JepException
-     *                if an error occurs
-     * @deprecated Please use {@link #Jep(JepConfig)} instead.
-     */
-    @Deprecated
-    public Jep(boolean interactive) throws JepException {
-        this(interactive, null, null);
-    }
-
-    /**
-     * Creates a new <code>Jep</code> instance and its associated
-     * sub-interpreter.
-     * 
-     * @param interactive
-     *            whether {@link #eval(String)} should support the slower
-     *            behavior of potentially waiting for multiple statements
-     * @param includePath
-     *            a path of directories separated by File.pathSeparator that
-     *            will be appended to the sub-intepreter's <code>sys.path</code>
-     * @exception JepException
-     *                if an error occurs
-     * @deprecated Please use {@link #Jep(JepConfig)} instead.
-     */
-    @Deprecated
-    public Jep(boolean interactive, String includePath) throws JepException {
-        this(interactive, includePath, null);
-    }
-
-    /**
-     * Creates a new <code>Jep</code> instance and its associated
-     * sub-interpreter.
-     * 
-     * @param interactive
-     *            whether {@link #eval(String)} should support the slower
-     *            behavior of potentially waiting for multiple statements
-     * @param includePath
-     *            a path of directories separated by File.pathSeparator that
-     *            will be appended to the sub-intepreter's <code>sys.path</code>
-     * @param cl
-     *            the ClassLoader to use when importing Java classes from Python
-     * @exception JepException
-     *                if an error occurs
-     * @deprecated Please use {@link #Jep(JepConfig)} instead.
-     */
-    @Deprecated
-    public Jep(boolean interactive, String includePath, ClassLoader cl)
-            throws JepException {
-        this(interactive, includePath, cl, null);
-    }
-
-    /**
-     * Creates a new <code>Jep</code> instance and its associated
-     * sub-interpreter.
-     * 
-     * @param interactive
-     *            whether {@link #eval(String)} should support the slower
-     *            behavior of potentially waiting for multiple statements
-     * @param includePath
-     *            a path of directories separated by File.pathSeparator that
-     *            will be appended to the sub-intepreter's <code>sys.path</code>
-     * @param cl
-     *            the ClassLoader to use when importing Java classes from Python
-     * @param ce
-     *            a <code>ClassEnquirer</code> to determine which imports are
-     *            Python vs Java, or null for the default {@link ClassList}
-     * @exception JepException
-     *                if an error occurs
-     * @deprecated Please use {@link #Jep(JepConfig)} instead.
-     */
-    @Deprecated
-    public Jep(boolean interactive, String includePath, ClassLoader cl,
-            ClassEnquirer ce) throws JepException {
-        this(new JepConfig().setInteractive(interactive)
-                .setIncludePath(includePath).setClassLoader(cl)
-                .setClassEnquirer(ce));
     }
 
     public Jep(JepConfig config) throws JepException {
@@ -584,62 +452,6 @@ public final class Jep implements AutoCloseable {
     private native byte[] getValue_bytearray(long tstate, String str)
             throws JepException;
 
-    /**
-     * Track Python objects we create so they can be smoothly shutdown with no
-     * risk of crashes due to bad reference counting.
-     * 
-     * <b>Internal use only.</b>
-     * 
-     * @param obj
-     *            a <code>PyObject</code> value
-     * @return same object, for inlining stuff
-     * @exception JepException
-     *                if an error occurs
-     */
-    public PyObject trackObject(PyObject obj) throws JepException {
-        return trackObject(obj, true);
-    }
-
-    /**
-     * Track Python objects we create so they can be smoothly shutdown with no
-     * risk of crashes due to bad reference counting.
-     * 
-     * <b>Internal use only.</b>
-     * 
-     * @param obj
-     *            a <code>PyObject</code> value
-     * @param inc
-     *            should trackObject incref()
-     * @return same object, for inlining stuff
-     * @exception JepException
-     *                if an error occurs
-     */
-    public PyObject trackObject(PyObject obj, boolean inc) throws JepException {
-        // make sure python doesn't close it
-        if (inc)
-            obj.incref();
-
-        this.pythonObjects.add(obj);
-        return obj;
-    }
-
-    /**
-     * Create a Python module on the interpreter. If the given name is valid,
-     * imported module, this method will return that module.
-     * 
-     * @param name
-     *            a <code>String</code> value
-     * @return a <code>PyModule</code> value
-     * @exception JepException
-     *                if an error occurs
-     */
-    public PyModule createModule(String name) throws JepException {
-        return (PyModule) trackObject(new PyModule(this.tstate,
-                createModule(this.tstate, name), this));
-    }
-
-    private native long createModule(long tstate, String name)
-            throws JepException;
 
     // -------------------------------------------------- set things
 
@@ -1086,11 +898,6 @@ public final class Jep implements AutoCloseable {
 
         // don't attempt close twice if something goes wrong
         this.closed = true;
-
-        // close all the PyObjects we created
-        for (int i = 0; i < this.pythonObjects.size(); i++) {
-            pythonObjects.get(i).close();
-        }
 
         try {
             eval(this.tstate, "import jep");
