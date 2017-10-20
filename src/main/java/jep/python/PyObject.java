@@ -39,7 +39,7 @@ import jep.JepException;
  * 
  *
  * @author njensen
- * @since 3.8
+ * @since 4.0
  */
 public class PyObject implements AutoCloseable {
 

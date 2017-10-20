@@ -37,7 +37,7 @@ import jep.JepException;
  * 
  * @see "http://www.oracle.com/technetwork/articles/java/finalization-137655.html"
  * @author njensen
- * @since 3.8
+ * @since 4.0
  */
 public final class MemoryManager {
 
