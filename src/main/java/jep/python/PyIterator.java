@@ -82,4 +82,9 @@ public class PyIterator<E> extends PyObject implements Iterator<E> {
         return ret;
     }
 
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
+
 }
