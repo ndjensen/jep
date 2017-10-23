@@ -56,9 +56,9 @@ public class TestJPyObjects {
 
         List<Integer> values = new ArrayList<>();
         while (itr.hasNext()) {
-            values.add((Integer) itr.next());
+            values.add(((Number) itr.next()).intValue());
             // just to mess with things
-            values.add((Integer) itr.next());
+            values.add(((Number) itr.next()).intValue());
             itr.hasNext();
         }
 
