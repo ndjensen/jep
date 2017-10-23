@@ -1,9 +1,14 @@
 package jep.test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import jep.JepException;
 import jep.python.PyCallable;
+import jep.python.PyIterator;
 import jep.python.PyObject;
 
 /**
@@ -42,6 +47,42 @@ public class TestJPyObjects {
     public String testUnboundInvoke(PyObject instance, PyCallable obj)
             throws JepException {
         return (String) obj.call(instance);
+    }
+
+    public boolean testIterator(PyIterator itr) {
+        if (!itr.hasNext()) {
+            return false;
+        }
+
+        List<Integer> values = new ArrayList<>();
+        while (itr.hasNext()) {
+            values.add((Integer) itr.next());
+            // just to mess with things
+            values.add((Integer) itr.next());
+            itr.hasNext();
+        }
+
+        // verify we got what we expected
+        List<Integer> expected = Arrays
+                .asList(new Integer[] { 5, 6, 7, 8, 9, 10, 11, 12 });
+        if (!values.equals(expected)) {
+            return false;
+        }
+
+        // should have gone through them all by now
+        if (itr.hasNext()) {
+            return false;
+        }
+
+        // next() should fail
+        try {
+            itr.next();
+            return false;
+        } catch (NoSuchElementException e) {
+            // expected
+        }
+
+        return true;
     }
 
 }

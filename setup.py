@@ -123,6 +123,7 @@ if __name__ == '__main__':
               ('jep.python.PyObject', 'jpyobject.h'),
               ('jep.python.PyCallable', 'jpycallable.h'),
               ('jep.python.PyPointer', 'pypointer.h'),
+              ('jep.python.PyIterator', 'jpyiterator.h'),
           ],
           distclass=JepDistribution,
           cmdclass={

@@ -159,6 +159,7 @@ extern jclass JDOUBLE_ARRAY_TYPE;
     F(JEP_EXC_TYPE, "jep/JepException") \
     F(JPYOBJECT_TYPE, "jep/python/PyObject") \
     F(JPYCALLABLE_TYPE, "jep/python/PyCallable") \
+    F(JPYITERATOR_TYPE, "jep/python/PyIterator") \
     NUMPY_CLASS_TABLE(F)
 
 #if JEP_NUMPY_ENABLED
