@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 JEP AUTHORS.
+ * Copyright (c) 2019 JEP AUTHORS.
  *
  * This file is licensed under the the zlib/libpng License.
  *
@@ -25,46 +25,39 @@
 package jep;
 
 /**
- * Class for creating instances of Interpreters which share imported modules.
- * This class allows creation of a SharedInterpreter instance that does not use
- * sub-interpreters. In this case each SharedInterpreter still maintains
- * distinct global variables but some interpreter state will be shared. The
- * primary impact is that SharedInterpreters will share any imported modules.
- * This is equivalent to using shared modules to share every Python package in
- * Jep. Anything that changes the way a module behaves will impact all
- * SharedInterpreters so care must be taken to ensure that different
- * SharedInterpreters aren't conflicting. For example sys.path, time.tzset(),
- * and numpy.seterr() will change the behavior of all SharedInterpreters.
+ * Class for creating instances of Interpreters which are sandboxed from other
+ * Interpreters. Sub-interpreters isolate different SubInterpreter instances,
+ * allowing them to be used safely from multiple unrelated pieces of a Java
+ * application without any risk that the SubInterpreter instances will impact
+ * each other. An exception to this is when a SubIntepreter uses CPython
+ * extensions, there is no guarantee that other Interpreters may not be
+ * affected. In those cases you may want to consider using the shared modules
+ * feature or a SharedInterpreter.
  *
  * Within a single Java process it is valid to mix Interpreter instances that
  * use SubInterpreters with SharedInterpreters. The SubInterpreter instances of
  * Jep will remain isolated from other Jep instances and from any
  * SharedInterpreters. To maintain stability, it is not possible to have
  * multiple Interpreter instances active on the same Thread at the same time and
- * this limitation includes SharedInterpreters.
- *
- *
- * @author Ben Steffensmeier
+ * this limitation includes SubInterpreters.
  * 
- * @since 3.8
+ * 
+ * @since 3.9
  */
-public class SharedInterpreter extends Jep {
+public class SubInterpreter extends Jep {
 
-    private static boolean initialized = false;
-
-    public SharedInterpreter() throws JepException {
-        super(new JepConfig(), false);
+    /**
+     * Creates a new sub interpreter.
+     * 
+     * @throws JepException
+     *             if an error occurs
+     */
+    public SubInterpreter() throws JepException {
+        super();
     }
 
-    @Override
-    protected void configureInterpreter(JepConfig config) throws JepException {
-        synchronized (SharedInterpreter.class) {
-            if (!initialized) {
-                setupJavaImportHook(config.classEnquirer);
-                initialized = true;
-            }
-        }
-
+    public SubInterpreter(JepConfig config) throws JepException {
+        super(config);
     }
 
 }
