@@ -326,6 +326,7 @@ static jarray convert_pyndarray_jprimitivearray(JNIEnv* env,
                      "Error matching ndarray with dtype %U to desired Java type %s",
                      dtypeName,
                      desTypeName ? desTypeName : "<unknown>");
+        Py_XDECREF(dtypeName);
         if (desTypeName != NULL) {
             (*env)->ReleaseStringUTFChars(env, desTypeJavaName, desTypeName);
         }
