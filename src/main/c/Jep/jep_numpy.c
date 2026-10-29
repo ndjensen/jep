@@ -318,6 +318,10 @@ static jarray convert_pyndarray_jprimitivearray(JNIEnv* env,
         PyObject *dtypeName = PyObject_GetAttrString((PyObject*) descr, "name");
         if (dtypeName == NULL) {
             Py_XDECREF(copy);
+            if (desTypeName != NULL) {
+                (*env)->ReleaseStringUTFChars(env, desTypeJavaName, desTypeName);
+            }
+            (*env)->DeleteLocalRef(env, desTypeJavaName);
             return NULL;
         }
 
@@ -326,7 +330,7 @@ static jarray convert_pyndarray_jprimitivearray(JNIEnv* env,
                      "Error matching ndarray with dtype %U to desired Java type %s",
                      dtypeName,
                      desTypeName ? desTypeName : "<unknown>");
-        Py_XDECREF(dtypeName);
+        Py_DECREF(dtypeName);
         if (desTypeName != NULL) {
             (*env)->ReleaseStringUTFChars(env, desTypeJavaName, desTypeName);
         }
